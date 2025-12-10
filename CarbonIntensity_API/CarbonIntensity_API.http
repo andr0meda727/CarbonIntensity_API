@@ -1,6 +1,13 @@
 @CarbonIntensity_API_HostAddress = http://localhost:5225
 
-GET {{CarbonIntensity_API_HostAddress}}/weatherforecast/
+# A) ENDPOINT DO WYŚWIETLANIA MIKSU ENERGETYCZNEGO
+GET {{CarbonIntensity_API_HostAddress}}/api/carbonintensity/dailymix
 Accept: application/json
 
 ###
+
+# B) ENDPOINT DO WYZNACZANIA OPTYMALNEGO OKNA ŁADOWANIA
+# Endpoint: GET /api/carbonintensity/optimalwindow?hours={1-6}
+GET {{CarbonIntensity_API_HostAddress}}/api/carbonintensity/optimalwindow?hours=3
+Accept: application/json
+
