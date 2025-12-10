@@ -1,7 +1,9 @@
-﻿namespace CarbonIntensity_API.Services.Interfaces;
+﻿using CarbonIntensity_API.Models.DTOs;
+
+namespace CarbonIntensity_API.Services.Interfaces;
 
 public interface ICarbonIntensity
 {
-    // GetAverageEnergyMixAsync
-    // GetOptimalWindowAsync(int hours)
+    Task<EnergyMixResponse> GetAverageEnergyMixAsync();
+    // Task<OptimalChargingWindow> GetOptimalWindowAsync(int hours);
 }
