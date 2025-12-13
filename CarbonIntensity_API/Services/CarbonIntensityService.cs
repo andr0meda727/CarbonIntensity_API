@@ -91,40 +91,29 @@ public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
         return result;
     }
 
-    private EnergyMixDay CalculateAverageAndCleanEnergyPercentageForSpecificDay(DateTime day, List<Interval> intervals)
+    private static EnergyMixDay CalculateAverageAndCleanEnergyPercentageForSpecificDay(DateTime day, List<Interval> intervals)
     {
         var result = new Dictionary<string, double>();
         var count = intervals.Count;
         var cleanEnergyPercentage = 0.0;
         
         if (count == 0)
-        {
             return new EnergyMixDay() { Date = day, AverageEnergyMix = new Dictionary<string, double>(), CleanEnergyPercentage = 0.0 };
-        }
         
-        foreach (var interval in intervals)
+        foreach (var mix in intervals.SelectMany(interval => interval.GenerationMixes))
         {
-            foreach (var mix in interval.GenerationMixes)
-            {
-                result.TryAdd(mix.FuelType, 0);
-
-                result[mix.FuelType] += mix.Percentage;
-            }
+            result.TryAdd(mix.FuelType, 0);
+            result[mix.FuelType] += mix.Percentage;
         }
 
-        foreach (var mix in result)
+        foreach (var key in result.Keys.ToList())
         {
-            double average = Math.Round(mix.Value / count, 2);
-            result[mix.Key] = average;
+            var average = Math.Round(result[key] / count, 2);
+            result[key] = average;
 
-            if (EnergyConstants.CleanEnergyTypes.Contains(mix.Key))
-            {
-                cleanEnergyPercentage += average;
-            }
+            if (EnergyConstants.CleanEnergyTypes.Contains(key)) cleanEnergyPercentage += average;
         }
         
         return new EnergyMixDay { Date = day, AverageEnergyMix = result, CleanEnergyPercentage = Math.Round(cleanEnergyPercentage, 2) };
     }
-    
-    // GetOptimalWindowAsync(int hours)
 }
