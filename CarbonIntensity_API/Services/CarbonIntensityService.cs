@@ -9,8 +9,10 @@ namespace CarbonIntensity_API.Services;
 public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
 {
     private const string IsoFormat = "yyyy-MM-ddTHH:mm:ssZ";
+    
     // Return the average energy mix and the percentage of clean energy
     // for 3 days: today, tomorrow, and the day after tomorrow.
+    
     // KEEP IN MIND: Data is available up to 2 days ahead of real-time.
     // Depending on when the data is fetched, we may have estimates
     // for the entire day or only a few hours for the day after tomorrow.
@@ -38,6 +40,15 @@ public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
     {
         // Final time window that we need to get data from will be 3 full days (today, tomorrow, day after tomorrow)
         
+        // Added 1 minute, since API was returning 23:30 - 00:00 interval (yesterday)
+        var today = DateTime.UtcNow.Date.AddMinutes(1); // From 2025-12-10T00:01:00Z
+        var dayAfterTomorrow = today.AddDays(3);        // To 2025-12-13T00:01:00Z
+        
+        return (today.ToString(IsoFormat), dayAfterTomorrow.ToString(IsoFormat));
+    }
+
+    private static (string tommorow, string dayAfterTomorrow) GetTimeWindowForOptimalWindow()
+    {
         // Added 30 minutes, since API was returning 23:30 - 00:00 interval
         var today = DateTime.Now.Date.AddMinutes(30); // Will be 2025-12-10T00:30:00Z, because of the formatting below
         var dayAfterTomorrow = today.AddDays(3); // To 2025-12-13T00:00:00Z
