@@ -4,6 +4,6 @@ namespace CarbonIntensity_API.Services.Interfaces;
 
 public interface ICarbonIntensity
 {
-    Task<EnergyMixResponse> GetAverageEnergyMixAsync();
-    // Task<OptimalChargingWindow> GetOptimalWindowAsync(int hours);
+    Task<EnergyMixResponse?> GetAverageEnergyMixAsync();
+    Task<OptimalChargingWindow?> GetOptimalWindowAsync(int hours);
 }

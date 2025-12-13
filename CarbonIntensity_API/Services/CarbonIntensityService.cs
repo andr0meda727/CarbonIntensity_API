@@ -17,25 +17,84 @@ public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
     // Depending on when the data is fetched, we may have estimates
     // for the entire day or only a few hours for the day after tomorrow.
     // e.g. We fetch data at 10.12.2025 16:00, we may not have data for 12.12.2025 20:00 - 20:30 interval
-    public async Task<EnergyMixResponse> GetAverageEnergyMixAsync()
+    public async Task<EnergyMixResponse?> GetAverageEnergyMixAsync()
     {
-        var energyMixDays = new List<EnergyMixDay>();
-        
         // We need to get data for today and two consecutive days
         // e.g. (10.12.2025, 11.12.2025, 12.12.2025)
         var timeWindow = GetThreeConsecutiveDaysTimeWindow();
 
         string? rawData = await FetchDataAsync(timeWindow.today, timeWindow.dayAfterTomorrow);
-        if (rawData == null) return new EnergyMixResponse { EnergyMixDays = energyMixDays };
+        if (rawData == null) return null;
         
         var intervals = ProcessData(rawData);
-        if (intervals == null || intervals.Count == 0) return new EnergyMixResponse { EnergyMixDays = energyMixDays };
+        if (intervals == null || intervals.Count == 0) return null;
         
-        energyMixDays = CalculateAverageAndCleanEnergyPercentage(intervals);
+        var energyMixDays = CalculateAverageAndCleanEnergyPercentage(intervals);
         
         return new EnergyMixResponse { EnergyMixDays = energyMixDays };
     }
-    
+
+    public async Task<OptimalChargingWindow?> GetOptimalWindowAsync(int hours)
+    {
+        // We need to get data for two consecutive days
+        // e.g. today is 13.12, we need data for 14.12.2025, 15.12.2025
+        var timeWindow = GetTimeWindowForOptimalWindow();
+
+        string? rawData = await FetchDataAsync(timeWindow.tommorow, timeWindow.dayAfterTomorrow);
+        if (rawData == null) return null;
+        
+        var intervals = ProcessData(rawData);
+        if (intervals == null || intervals.Count == 0) return null;
+
+        var optimalChargingWindow = FindOptimalWindow(intervals, hours);
+
+        return optimalChargingWindow;
+    }
+
+    private OptimalChargingWindow? FindOptimalWindow(List<Interval> intervals, int hours)
+    {
+        var windowSize = 2 * hours; // Intervals are half an hour long
+        
+        var startTime = intervals[0].From;
+
+        if (intervals.Count < windowSize)
+        {
+            return null;
+        }
+        
+        var endTime = intervals[windowSize - 1].To;
+        
+        double windowSum = 0;
+
+        for (int i = 0; i < windowSize; i++)
+        {
+            windowSum += CalculateCleanEnergyShare(intervals[i]);
+        }
+        
+        double maxSum = windowSum;
+        
+        // I used sliding window, because of better time complexity
+        // O(n) > O(n * windowSize)
+        for (int i = windowSize; i < intervals.Count; i++)
+        {
+            windowSum += CalculateCleanEnergyShare(intervals[i]) - CalculateCleanEnergyShare(intervals[i - windowSize]);
+
+            if (windowSum > maxSum)
+            {
+                startTime = intervals[i - windowSize + 1].From;
+                endTime = intervals[i].To;
+                maxSum = windowSum;
+            }
+        }
+        
+        return new OptimalChargingWindow{ StartTime = startTime, EndTime = endTime, CleanEnergyPercentage = Math.Round(maxSum / windowSize, 2) };
+    }
+
+    private static double CalculateCleanEnergyShare(Interval interval)
+    {
+        return interval.GenerationMixes.Where((mix) => EnergyConstants.CleanEnergyTypes.Contains(mix.FuelType)).Sum((mix) => mix.Percentage);
+    }
+
     private static (string today, string dayAfterTomorrow) GetThreeConsecutiveDaysTimeWindow()
     {
         // Final time window that we need to get data from will be 3 full days (today, tomorrow, day after tomorrow)
