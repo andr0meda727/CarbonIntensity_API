@@ -9,6 +9,7 @@ namespace CarbonIntensity_API.Services;
 
 public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
 {
+    private const string IsoFormat = "yyyy-MM-ddTHH:mm:ssZ";
     // Return the average energy mix and the percentage of clean energy
     // for 3 days: today, tomorrow, and the day after tomorrow.
     // KEEP IN MIND: Data is available up to 2 days ahead of real-time.
