@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CarbonIntensity_API.Constants;
 using CarbonIntensity_API.Models.DTOs;
 using CarbonIntensity_API.Models.ExternalApiModels;
@@ -81,23 +80,14 @@ public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
 
     private List<EnergyMixDay> CalculateAverageAndCleanEnergyPercentage(List<Interval> intervals)
     {
-        var result = new List<EnergyMixDay>();
-        
-        var groupedIntervalsByDay = intervals
-            .GroupBy(interval => interval.From.Date)
-            .Select(group => new
-            {
-                Date = group.Key,
-                Intervals = group.ToList()
-            })
+        var groupedIntervalsByDay = intervals.GroupBy(interval => interval.From.Date)
+            .Select(group => new { Date = group.Key, Intervals = group.ToList() })
             .ToList();
 
-        foreach (var day in groupedIntervalsByDay)
-        {
-            var energyMixDay = CalculateAverageAndCleanEnergyPercentageForSpecificDay(day.Date, day.Intervals);
-            result.Add(energyMixDay);
-        }
-        
+        var result = groupedIntervalsByDay
+            .Select(day => CalculateAverageAndCleanEnergyPercentageForSpecificDay(day.Date, day.Intervals))
+            .ToList();
+
         return result;
     }
 
