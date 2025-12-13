@@ -58,7 +58,7 @@ public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
 
     private async Task<string?> FetchDataAsync(string from, string to)
     {
-        var url = $"https://api.carbonintensity.org.uk/generation/{from}/{to}";
+        var url = $"{from}/{to}";
         HttpResponseMessage response;
 
         try
