@@ -15,7 +15,9 @@ public class CarbonIntensityController(ICarbonIntensity carbonIntensityService) 
         try
         {
             var result = await carbonIntensityService.GetAverageEnergyMixAsync();
-            return Ok(result);
+            return result == null
+                ? StatusCode(500, new { error = "External API unavailable or returned invalid data" })
+                : Ok(result);
         }
         catch (Exception ex)
         {
@@ -35,7 +37,9 @@ public class CarbonIntensityController(ICarbonIntensity carbonIntensityService) 
         try
         {
             var result = await carbonIntensityService.GetOptimalWindowAsync(hours);
-            return Ok(result);
+            return result == null
+                ? StatusCode(500, new { error = "Failed to calculate optimal charging window" })
+                : Ok(result);
         }
         catch (Exception ex)
         {
