@@ -14,7 +14,7 @@ public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
     // KEEP IN MIND: Data is available up to 2 days ahead of real-time.
     // Depending on when the data is fetched, we may have estimates
     // for the entire day or only a few hours for the day after tomorrow.
-    // e.g. We fetch data at 10.12.2025 16:00, we may have data for 12.12.2025 20:00 - 20:30 interval
+    // e.g. We fetch data at 10.12.2025 16:00, we may not have data for 12.12.2025 20:00 - 20:30 interval
     public async Task<EnergyMixResponse> GetAverageEnergyMixAsync()
     {
         var energyMixDays = new List<EnergyMixDay>();
