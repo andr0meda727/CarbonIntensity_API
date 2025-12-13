@@ -49,11 +49,11 @@ public class CarbonIntensityService(HttpClient httpClient) : ICarbonIntensity
 
     private static (string tommorow, string dayAfterTomorrow) GetTimeWindowForOptimalWindow()
     {
-        // Added 30 minutes, since API was returning 23:30 - 00:00 interval
-        var today = DateTime.Now.Date.AddMinutes(30); // Will be 2025-12-10T00:30:00Z, because of the formatting below
-        var dayAfterTomorrow = today.AddDays(3); // To 2025-12-13T00:00:00Z
+        // Added 1 minute, since API was returning 23:30 - 00:00 interval (yesterday)
+        var tomorrow = DateTime.UtcNow.Date.AddMinutes(1).AddDays(1);   // From 2025-12-11T00:01:00Z
+        var dayAfterTomorrow = tomorrow.AddDays(2);                     // To 2025-12-13T01:00:00Z
         
-        return (today.ToString("yyyy-MM-ddTHH:mm:ssZ"), dayAfterTomorrow.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+        return (tomorrow.ToString(IsoFormat), dayAfterTomorrow.ToString(IsoFormat));
     }
 
     private async Task<string?> FetchDataAsync(string from, string to)
